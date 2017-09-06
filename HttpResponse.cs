@@ -11,7 +11,7 @@ namespace SimpleHttp
 		HttpListenerResponse response;
 		bool headersSet;
 
-		public int StatusCode { get; set; }
+		public int? StatusCode { get; set; }
 		public string StatusMessage { get; set; }
 		public Dictionary<string, string> Headers { get; set; }
 		public Dictionary<string, string> Cookies { get; set; }
@@ -27,13 +27,14 @@ namespace SimpleHttp
 			this.response = response;
 			headersSet = false;
 
-			StatusCode = -1;
+			StatusCode = null;
 			StatusMessage = null;
 			Headers = new Dictionary<string, string>();
 			Cookies = new Dictionary<string, string>();
 			CookiePath = new Dictionary<string, string>();
 			CookieExpire = new Dictionary<string, long>();
 			ContentType = null;
+			RedirectLocation = null;
 		}
 
 		void SetHeaders()
@@ -41,8 +42,8 @@ namespace SimpleHttp
 			if (headersSet)
 				return;
 
-			if (StatusCode >= 0)
-				response.StatusCode = StatusCode;
+			if (StatusCode != null)
+				response.StatusCode = (int)StatusCode;
 
 			if (StatusMessage != null)
 				response.StatusDescription = StatusMessage;
@@ -67,10 +68,13 @@ namespace SimpleHttp
 			}
 
 			if (ContentType != null)
-			{
-				if (StatusCode < 0)
-					response.StatusCode = 403;
 				response.ContentType = ContentType;
+			
+			if (RedirectLocation != null)
+			{
+				if (StatusCode == null)
+					response.StatusCode = 302;
+				response.RedirectLocation = RedirectLocation;
 			}
 
 			headersSet = true;
