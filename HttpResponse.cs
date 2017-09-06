@@ -9,9 +9,9 @@ namespace SimpleHttp
 	class HttpResponse
 	{
 		HttpListenerResponse response;
-		bool headersSet;
 
-		public bool IsOpen { get; set; }
+		public bool IsOpen { get; private set; }
+		public bool IsDataSent { get; private set; }
 
 		public int? StatusCode { get; set; }
 		public string StatusMessage { get; set; }
@@ -27,8 +27,17 @@ namespace SimpleHttp
 		public HttpResponse(HttpListenerResponse response)
 		{
 			this.response = response;
-			headersSet = false;
+
 			IsOpen = true;
+			IsDataSent = false;
+
+			Reset();
+		}
+
+		public void Reset()
+		{
+			if (IsDataSent)
+				return;
 
 			StatusCode = null;
 			StatusMessage = null;
@@ -42,7 +51,7 @@ namespace SimpleHttp
 
 		void SetHeaders()
 		{
-			if (headersSet)
+			if (IsDataSent)
 				return;
 
 			if (StatusCode != null)
@@ -80,7 +89,7 @@ namespace SimpleHttp
 				response.RedirectLocation = RedirectLocation;
 			}
 
-			headersSet = true;
+			IsDataSent = true;
 		}
 
 		public void WriteBodyData(byte[] data)
