@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security;
+using System.Text.RegularExpressions;
 
 namespace SimpleHttp
 {
@@ -17,7 +18,7 @@ namespace SimpleHttp
 
 		public static void AddStaticDirectory(this HttpServer server, string url, string directoryPath, string defaultFile = null)
 		{
-			server.AddRoute("GET", $"{url.TrimEnd('/')}(/.*)?", (captures, request, response) =>
+			server.AddRoute("GET", $"{Regex.Escape(url.TrimEnd('/'))}(/.*)?", (captures, request, response) =>
 			{
 				var fullDirectoryPath = Path.GetFullPath(directoryPath);
 				if (!fullDirectoryPath.EndsWith($"{Path.DirectorySeparatorChar}"))
@@ -28,8 +29,13 @@ namespace SimpleHttp
 				if (!fullFilePath.StartsWith(fullDirectoryPath))
 					throw new SecurityException();
 
-				if (defaultFile != null && Directory.Exists(fullFilePath))
-					fullFilePath += Path.DirectorySeparatorChar + defaultFile;
+				if (Directory.Exists(fullFilePath))
+				{
+					if (!fullFilePath.EndsWith($"{Path.DirectorySeparatorChar}"))
+						fullFilePath += Path.DirectorySeparatorChar;
+					if (defaultFile != null)
+						fullFilePath += defaultFile;
+				}
 
 				using (var file = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 					file.CopyTo(response.GetBodyStream());
