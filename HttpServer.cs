@@ -33,8 +33,6 @@ namespace SimpleHttp
 			{
 				Console.WriteLine($"{e.GetType()} : {e.Message}");
 
-				response.ContentType = "text/plain";
-
 				if (e is FileNotFoundException || e is DirectoryNotFoundException || e is PathTooLongException)
 				{
 					response.StatusCode = 404;
