@@ -15,16 +15,19 @@ namespace SimpleHttp
 		public bool IsRegex { get; private set; }
 		public bool MatchFullUrl { get; private set; }
 
-		public static bool InvokeFirstMatch(
+		public static bool InvokeMatchingRoutes(
 			List<HttpRoute> routes, HttpRequest request, HttpResponse response)
 		{
+			var routeMatched = false;
+
 			foreach (var route in routes)
 			{
-				if (route.InvokeOnMatch(request, response))
-					return true;
+				routeMatched |= route.InvokeOnMatch(request, response);
+				if (!response.IsOpen)
+					break;
 			}
 
-			return false;
+			return routeMatched;
 		}
 
 		public HttpRoute(

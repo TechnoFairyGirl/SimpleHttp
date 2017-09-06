@@ -64,11 +64,14 @@ namespace SimpleHttp
 
 				try
 				{
-					if (!HttpRoute.InvokeFirstMatch(Routes, request, response))
+					if (!HttpRoute.InvokeMatchingRoutes(Routes, request, response))
 						DefaultRoute.Invoke(request, response);
 				}
 				catch (HttpListenerException) { throw; }
 				catch (Exception e) { ErrorRoute.Invoke(e, request, response); }
+
+				if (!response.IsOpen)
+					return;
 
 				response.Close();
 			}

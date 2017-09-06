@@ -11,6 +11,8 @@ namespace SimpleHttp
 		HttpListenerResponse response;
 		bool headersSet;
 
+		public bool IsOpen { get; set; }
+
 		public int? StatusCode { get; set; }
 		public string StatusMessage { get; set; }
 		public Dictionary<string, string> Headers { get; set; }
@@ -26,6 +28,7 @@ namespace SimpleHttp
 		{
 			this.response = response;
 			headersSet = false;
+			IsOpen = true;
 
 			StatusCode = null;
 			StatusMessage = null;
@@ -124,6 +127,7 @@ namespace SimpleHttp
 		{
 			SetHeaders();
 			response.Close();
+			IsOpen = false;
 		}
 	}
 }
