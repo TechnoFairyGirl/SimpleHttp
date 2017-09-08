@@ -7,16 +7,58 @@ namespace SimpleHttp
 {
 	static class HttpStaticContent
 	{
+		static bool ParseRangeRequestHeader(HttpRequest request, FileStream file, out long offset, out long length)
+		{
+			offset = 0;
+			length = file.Length;
+
+			if (!request.Headers.ContainsKey("Range"))
+				return false;
+
+			var range = Regex.Match(request.Headers["Range"], "^bytes=(\\d+)-(\\d*)");
+			if (!range.Success)
+				return false;
+
+			var rangeStart = long.Parse(range.Groups[1].Value);
+			offset = Math.Max(0, Math.Min(rangeStart, file.Length - 1));
+			length -= offset;
+
+			if (!String.IsNullOrEmpty(range.Groups[2].Value))
+			{
+				var rangeLength = long.Parse(range.Groups[2].Value) - rangeStart + 1;
+				length = Math.Max(0, Math.Min(rangeLength, length));
+			}
+
+			return true;
+		}
+
+		static void SetRangeResponseHeader(HttpResponse response, FileStream file, long offset, long length)
+		{
+			if (length < 1)
+				return;
+
+			response.StatusCode = 206;
+			response.Headers.Add("Content-Range", $"bytes {offset}-{offset + length - 1}/{file.Length}");
+		}
+
 		public static void AddStaticFile(this HttpServer server, string url, string filePath)
 		{
 			server.AddExactRoute("GET", url, (request, response) =>
 			{
-				using (var file = new FileStream(filePath, FileMode.Open))
-					file.CopyTo(response.GetBodyStream());
+				using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+				{
+					long offset, length;
+					if (ParseRangeRequestHeader(request, file, out offset, out length))
+						SetRangeResponseHeader(response, file, offset, length);
+
+					response.Headers.Add("Accept-Ranges", "bytes");
+					file.CopyBlockTo(response.GetBodyStream(), offset, length);
+				}
 			});
 		}
 
-		public static void AddStaticDirectory(this HttpServer server, string url, string directoryPath, string defaultFile = null)
+		public static void AddStaticDirectory(
+			this HttpServer server, string url, string directoryPath, string defaultFile = null)
 		{
 			server.AddRoute("GET", $"{Regex.Escape(url.TrimEnd('/'))}(/.*)?", (captures, request, response) =>
 			{
@@ -27,7 +69,7 @@ namespace SimpleHttp
 				var fullFilePath = Path.GetFullPath(
 					fullDirectoryPath + captures[0].Replace('/', Path.DirectorySeparatorChar));
 				if (!fullFilePath.StartsWith(fullDirectoryPath))
-					throw new SecurityException();
+					throw new SecurityException($"Access to '{fullFilePath}' not allowed.");
 
 				if (Directory.Exists(fullFilePath))
 				{
@@ -38,7 +80,14 @@ namespace SimpleHttp
 				}
 
 				using (var file = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-					file.CopyTo(response.GetBodyStream());
+				{
+					long offset, length;
+					if (ParseRangeRequestHeader(request, file, out offset, out length))
+						SetRangeResponseHeader(response, file, offset, length);
+
+					response.Headers.Add("Accept-Ranges", "bytes");
+					file.CopyBlockTo(response.GetBodyStream(), offset, length);
+				}
 			});
 		}
 	}

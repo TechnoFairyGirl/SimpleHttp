@@ -10,6 +10,27 @@ namespace SimpleHttp
 {
 	static class HttpHelperExtensions
 	{
+		public static long CopyBlockTo(this Stream inStream, Stream outStream, long? offset, long? length)
+		{
+			if (offset != null)
+				inStream.Seek((long)offset, SeekOrigin.Current);
+
+			byte[] buffer = new byte[81920];
+			long bytesCopied = 0;
+
+			while (true)
+			{
+				var bytesRead = inStream.Read(buffer, 0, length == null ? buffer.Length :
+					(int)Math.Min((long)length - bytesCopied, buffer.Length));
+				outStream.Write(buffer, 0, bytesRead);
+				bytesCopied += bytesRead;
+				if (bytesRead == 0 || (length != null && bytesCopied >= (long)length))
+					break;
+			}
+
+			return bytesCopied;
+		}
+
 		public static byte[] ReadAllBytes(this Stream stream)
 		{
 			using (var buffer = new MemoryStream())
