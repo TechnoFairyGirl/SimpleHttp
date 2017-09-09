@@ -21,6 +21,8 @@ namespace SimpleHttp
 		public string UserAgent { get { return request.UserAgent; } }
 		public string ClientIP { get { return request.RemoteEndPoint.Address.ToString(); } }
 
+		public object CustomData { get; set; }
+
 		public Dictionary<string, string> Cookies
 		{
 			get
@@ -35,6 +37,7 @@ namespace SimpleHttp
 		public HttpRequest(HttpListenerRequest request)
 		{
 			this.request = request;
+			CustomData = null;
 		}
 
 		public byte[] ReadBodyData() { return request.ReadBodyData(); }
