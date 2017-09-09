@@ -43,11 +43,7 @@ namespace SimpleHttp
 
 		public T ReadBodyJson<T>()
 		{
-			var obj = default(T);
-			try { obj = JsonConvert.DeserializeObject<T>(ReadBodyText()); }
-			catch (JsonReaderException) { }
-
-			return obj;
+			return JsonConvert.DeserializeObject<T>(ReadBodyText());
 		}
 	}
 }

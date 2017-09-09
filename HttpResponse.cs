@@ -119,11 +119,7 @@ namespace SimpleHttp
 
 			SetHeaders();
 
-			var text = "";
-			try { text = JsonConvert.SerializeObject(obj); }
-			catch (JsonWriterException) { }
-
-			response.WriteBodyText(text);
+			response.WriteBodyText(JsonConvert.SerializeObject(obj));
 		}
 
 		public Stream GetBodyStream()
