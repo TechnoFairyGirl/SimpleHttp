@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Security;
+using Newtonsoft.Json;
 
 namespace SimpleHttp
 {
@@ -49,6 +50,13 @@ namespace SimpleHttp
 				{
 					response.StatusCode = 403;
 					response.WriteBodyText("Forbidden.");
+					return;
+				}
+
+				if (e is JsonReaderException || e is KeyNotFoundException)
+				{
+					response.StatusCode = 400;
+					response.WriteBodyText("Invalid request.");
 					return;
 				}
 
