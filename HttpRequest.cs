@@ -15,7 +15,7 @@ namespace SimpleHttp
 		public string Url { get { return request.Url.AbsolutePath; } }
 		public string QueryString { get { return request.Url.Query; } }
 		public Dictionary<string, string> QueryParams { get { return request.QueryString.ToDictionary(); } }
-		public Dictionary<string, string> Headers { get { return request.Headers.ToDictionary(); } }
+		public Dictionary<string, string> Headers { get { return request.Headers.ToDictionary(true); } }
 		public string ContentType { get { return request.ContentType; } }
 		public long ContentLength { get { return request.ContentLength64; } }
 		public string UserAgent { get { return request.UserAgent; } }

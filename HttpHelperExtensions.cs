@@ -78,9 +78,11 @@ namespace SimpleHttp
 			response.OutputStream.Write(text);
 		}
 
-		public static Dictionary<string, string> ToDictionary(this NameValueCollection nvc)
+		public static Dictionary<string, string> ToDictionary(
+			this NameValueCollection nvc, bool lowercaseKeys = false)
 		{
-			return nvc.AllKeys.ToDictionary(k => k, k => nvc[k]);
+			return nvc.AllKeys.ToDictionary(
+				k => lowercaseKeys ? k.ToLowerInvariant() : k, k => nvc[k]);
 		}
 	}
 }
