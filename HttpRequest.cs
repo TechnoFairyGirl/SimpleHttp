@@ -9,6 +9,9 @@ namespace SimpleHttp
 {
 	class HttpRequest
 	{
+		static long requestIdCtr = 0;
+		static object requestIdCtrLock = new object();
+
 		HttpListenerRequest request;
 
 		public string Method { get { return request.HttpMethod; } }
@@ -22,6 +25,8 @@ namespace SimpleHttp
 		public string ClientIP { get { return request.RemoteEndPoint.Address.ToString(); } }
 
 		public object CustomData { get; set; }
+
+		public long RequestId { get; private set; }
 
 		public Dictionary<string, string> Cookies
 		{
@@ -38,6 +43,12 @@ namespace SimpleHttp
 		{
 			this.request = request;
 			CustomData = null;
+
+			lock (requestIdCtrLock)
+			{
+				requestIdCtr++;
+				RequestId = requestIdCtr;
+			}
 		}
 
 		public byte[] ReadBodyData() { return request.ReadBodyData(); }
