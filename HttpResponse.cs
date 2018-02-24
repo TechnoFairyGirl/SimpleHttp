@@ -15,6 +15,7 @@ namespace SimpleHttp
 
 		public int? StatusCode { get; set; }
 		public string StatusMessage { get; set; }
+		public bool? Chunked { get; set; }
 		public Dictionary<string, string> Headers { get; set; }
 		public Dictionary<string, string> Cookies { get; set; }
 		public Dictionary<string, string> CookiePath { get; set; }
@@ -41,6 +42,7 @@ namespace SimpleHttp
 
 			StatusCode = null;
 			StatusMessage = null;
+			Chunked = null;
 			Headers = new Dictionary<string, string>();
 			Cookies = new Dictionary<string, string>();
 			CookiePath = new Dictionary<string, string>();
@@ -59,6 +61,9 @@ namespace SimpleHttp
 
 			if (StatusMessage != null)
 				response.StatusDescription = StatusMessage;
+
+			if (Chunked != null)
+				response.SendChunked = (bool)Chunked;
 
 			if (Headers != null)
 			{
