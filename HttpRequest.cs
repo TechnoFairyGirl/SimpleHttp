@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace SimpleHttp
 {
-	class HttpRequest
+	public class HttpRequest
 	{
 		static long requestIdCtr = 0;
 		static object requestIdCtrLock = new object();

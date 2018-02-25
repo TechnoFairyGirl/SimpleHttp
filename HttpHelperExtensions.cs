@@ -8,7 +8,7 @@ using System.Text;
 
 namespace SimpleHttp
 {
-	static class HttpHelperExtensions
+	public static class HttpHelperExtensions
 	{
 		public static long CopyBlockTo(this Stream inStream, Stream outStream, long? offset, long? length)
 		{

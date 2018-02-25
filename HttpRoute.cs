@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace SimpleHttp
 {
-	class HttpRoute
+	public class HttpRoute
 	{
 		Action<string[], HttpRequest, HttpResponse> callback;
 		Action<Exception, HttpRequest, HttpResponse> errorCallback;

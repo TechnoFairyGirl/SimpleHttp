@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace SimpleHttp
 {
-	static class HttpStaticContent
+	public static class HttpStaticContent
 	{
 		static bool ParseRangeRequestHeader(HttpRequest request, long totalLength, out long offset, out long length)
 		{

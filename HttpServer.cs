@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace SimpleHttp
 {
-	class HttpServer
+	public class HttpServer
 	{
 		HttpListener listener;
 
