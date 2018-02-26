@@ -10,8 +10,9 @@ namespace SimpleHttp
 	public class HttpServer
 	{
 		HttpListener listener;
-
 		public int Port { get; private set; }
+
+		Action<long?, string> logCallback;
 
 		public List<HttpRoute> Routes { get; private set; }
 		public HttpRoute DefaultRoute { get; private set; }
@@ -25,6 +26,10 @@ namespace SimpleHttp
 			listener = new HttpListener();
 			listener.Prefixes.Add($"http://+:{Port}/");
 
+			SetLogCallback((requestId, message) =>
+				Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] " + 
+					(requestId != null ? $"<{requestId}> " : "") + message));
+
 			Routes = new List<HttpRoute>();
 
 			SetDefaultRoute((request, response) =>
@@ -32,7 +37,7 @@ namespace SimpleHttp
 
 			SetErrorRoute((e, request, response) =>
 			{
-				Console.WriteLine($"{e.GetType()} : {e.Message}");
+				Log(request.RequestId, $"{e.GetType()} : {e.Message}");
 
 				if (response.IsDataSent)
 					return;
@@ -77,6 +82,8 @@ namespace SimpleHttp
 
 				try
 				{
+					Log(request.RequestId, $"Request from '{request.ClientIP}'.");
+
 					if (!HttpRoute.InvokeMatchingRoutes(Routes, request, response))
 						DefaultRoute.Invoke(request, response);
 				}
@@ -98,6 +105,8 @@ namespace SimpleHttp
 
 			listener.Start();
 			listener.BeginGetContext(ClientHandler, null);
+
+			Log($"Service started on port {Port}.");
 		}
 
 		public void Stop()
@@ -106,6 +115,23 @@ namespace SimpleHttp
 				return;
 
 			listener.Stop();
+
+			Log("Service stopped.");
+		}
+
+		public void SetLogCallback(Action<long?, string> callback)
+		{
+			logCallback = callback;
+		}
+
+		public void Log(long? requestId, string message)
+		{
+			logCallback(requestId, message);
+		}
+
+		public void Log(string message)
+		{
+			logCallback(null, message);
 		}
 
 		public void AddRoute(
