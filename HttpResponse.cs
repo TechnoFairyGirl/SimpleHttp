@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace SimpleHttp
@@ -24,6 +25,8 @@ namespace SimpleHttp
 		public string RedirectLocation { get; set; }
 
 		public static string UrlEncode(string str) { return WebUtility.UrlEncode(str); }
+		public static string Base64Encode(byte[] data) { return Convert.ToBase64String(data); }
+		public static string Base64Encode(string str) { return Base64Encode(Encoding.UTF8.GetBytes(str)); }
 
 		public HttpResponse(HttpListenerResponse response)
 		{

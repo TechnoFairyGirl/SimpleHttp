@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace SimpleHttp
@@ -38,6 +39,8 @@ namespace SimpleHttp
 		}
 
 		public static string UrlDecode(string str) { return WebUtility.UrlDecode(str); }
+		public static byte[] Base64DecodeBytes(string str) { return Convert.FromBase64String(str); }
+		public static string Base64Decode(string str) { return Encoding.UTF8.GetString(Base64DecodeBytes(str)); }
 
 		public HttpRequest(HttpListenerRequest request)
 		{
