@@ -12,10 +12,10 @@ namespace SimpleHttp
 			offset = 0;
 			length = totalLength;
 
-			if (!request.Headers.ContainsKey("Range"))
+			if (!request.Headers.ContainsKey("range"))
 				return false;
 
-			var range = Regex.Match(request.Headers["Range"], "^bytes=(\\d+)-(\\d*)");
+			var range = Regex.Match(request.Headers["range"], "^bytes=(\\d+)-(\\d*)");
 			if (!range.Success)
 				return false;
 
