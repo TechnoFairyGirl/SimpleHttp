@@ -15,15 +15,15 @@ namespace SimpleHttp
 
 		HttpListenerRequest request;
 
-		public string Method { get { return request.HttpMethod; } }
-		public string Url { get { return request.Url.AbsolutePath; } }
-		public string QueryString { get { return request.Url.Query; } }
-		public Dictionary<string, string> QueryParams { get { return request.QueryString.ToDictionary(); } }
-		public Dictionary<string, string> Headers { get { return request.Headers.ToDictionary(true); } }
-		public string ContentType { get { return request.ContentType; } }
-		public long ContentLength { get { return request.ContentLength64; } }
-		public string UserAgent { get { return request.UserAgent; } }
-		public string ClientIP { get { return request.RemoteEndPoint.Address.ToString(); } }
+		public string Method { get => request.HttpMethod; }
+		public string Url { get => request.Url.AbsolutePath; }
+		public string QueryString { get => request.Url.Query; }
+		public Dictionary<string, string> QueryParams { get => request.QueryString.ToDictionary(); }
+		public Dictionary<string, string> Headers { get => request.Headers.ToDictionary(true); }
+		public string ContentType { get => request.ContentType; }
+		public long ContentLength { get => request.ContentLength64; }
+		public string UserAgent { get => request.UserAgent; }
+		public string ClientIP { get => request.RemoteEndPoint.Address.ToString(); }
 
 		public object CustomData { get; set; }
 
@@ -31,16 +31,13 @@ namespace SimpleHttp
 
 		public Dictionary<string, string> Cookies
 		{
-			get
-			{
-				return Enumerable.Range(0, request.Cookies.Count)
-					.ToDictionary(i => request.Cookies[i].Name, i => request.Cookies[i].Value);
-			}
+			get => Enumerable.Range(0, request.Cookies.Count)
+				.ToDictionary(i => request.Cookies[i].Name, i => request.Cookies[i].Value);
 		}
 
-		public static string UrlDecode(string str) { return WebUtility.UrlDecode(str); }
-		public static byte[] Base64DecodeBytes(string str) { return Convert.FromBase64String(str); }
-		public static string Base64Decode(string str) { return Encoding.UTF8.GetString(Base64DecodeBytes(str)); }
+		public static string UrlDecode(string str) => WebUtility.UrlDecode(str);
+		public static byte[] Base64DecodeBytes(string str) => Convert.FromBase64String(str);
+		public static string Base64Decode(string str) => Encoding.UTF8.GetString(Base64DecodeBytes(str));
 
 		public HttpRequest(HttpListenerRequest request)
 		{
@@ -54,13 +51,11 @@ namespace SimpleHttp
 			}
 		}
 
-		public byte[] ReadBodyData() { return request.ReadBodyData(); }
-		public string ReadBodyText() { return request.ReadBodyText(); }
-		public Stream GetBodyStream() { return request.InputStream; }
+		public byte[] ReadBodyData() => request.ReadBodyData();
+		public string ReadBodyText() => request.ReadBodyText();
+		public Stream GetBodyStream() => request.InputStream;
 
-		public T ReadBodyJson<T>()
-		{
-			return JsonConvert.DeserializeObject<T>(ReadBodyText());
-		}
+		public T ReadBodyJson<T>() =>
+			JsonConvert.DeserializeObject<T>(ReadBodyText());
 	}
 }

@@ -24,9 +24,9 @@ namespace SimpleHttp
 		public string ContentType { get; set; }
 		public string RedirectLocation { get; set; }
 
-		public static string UrlEncode(string str) { return WebUtility.UrlEncode(str); }
-		public static string Base64Encode(byte[] data) { return Convert.ToBase64String(data); }
-		public static string Base64Encode(string str) { return Base64Encode(Encoding.UTF8.GetBytes(str)); }
+		public static string UrlEncode(string str) => WebUtility.UrlEncode(str);
+		public static string Base64Encode(byte[] data) => Convert.ToBase64String(data);
+		public static string Base64Encode(string str) => Base64Encode(Encoding.UTF8.GetBytes(str));
 
 		public HttpResponse(HttpListenerResponse response)
 		{

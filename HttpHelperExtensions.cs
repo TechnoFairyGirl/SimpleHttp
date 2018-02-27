@@ -43,46 +43,29 @@ namespace SimpleHttp
 		public static string ReadAllText(this Stream stream)
 		{
 			using (var reader = new StreamReader(stream, Encoding.UTF8))
-			{
 				return reader.ReadToEnd();
-			}
 		}
 
-		public static void Write(this Stream stream, byte[] data)
-		{
+		public static void Write(this Stream stream, byte[] data) =>
 			stream.Write(data, 0, data.Length);
-		}
 
-		public static void Write(this Stream stream, string text)
-		{
+		public static void Write(this Stream stream, string text) =>
 			stream.Write(Encoding.UTF8.GetBytes(text));
-		}
 
-		public static byte[] ReadBodyData(this HttpListenerRequest request)
-		{
-			return request.InputStream.ReadAllBytes();
-		}
+		public static byte[] ReadBodyData(this HttpListenerRequest request) =>
+			request.InputStream.ReadAllBytes();
 
-		public static string ReadBodyText(this HttpListenerRequest request)
-		{
-			return request.InputStream.ReadAllText();
-		}
+		public static string ReadBodyText(this HttpListenerRequest request) =>
+			request.InputStream.ReadAllText();
 
-		public static void WriteBodyData(this HttpListenerResponse response, byte[] data)
-		{
+		public static void WriteBodyData(this HttpListenerResponse response, byte[] data) =>
 			response.OutputStream.Write(data);
-		}
 
-		public static void WriteBodyText(this HttpListenerResponse response, string text)
-		{
+		public static void WriteBodyText(this HttpListenerResponse response, string text) =>
 			response.OutputStream.Write(text);
-		}
 
 		public static Dictionary<string, string> ToDictionary(
-			this NameValueCollection nvc, bool lowercaseKeys = false)
-		{
-			return nvc.AllKeys.ToDictionary(
-				k => lowercaseKeys ? k.ToLowerInvariant() : k, k => nvc[k]);
-		}
+			this NameValueCollection nvc, bool lowercaseKeys = false) =>
+			nvc.AllKeys.ToDictionary(k => lowercaseKeys ? k.ToLowerInvariant() : k, k => nvc[k]);
 	}
 }

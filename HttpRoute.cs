@@ -111,10 +111,8 @@ namespace SimpleHttp
 			return true;
 		}
 
-		public bool Invoke(HttpRequest request, HttpResponse response)
-		{
-			return Invoke(new string[0], request, response);
-		}
+		public bool Invoke(HttpRequest request, HttpResponse response) =>
+			Invoke(new string[0], request, response);
 
 		public bool Invoke(Exception e, HttpRequest request, HttpResponse response)
 		{
@@ -125,9 +123,7 @@ namespace SimpleHttp
 			return true;
 		}
 
-		public bool InvokeOnMatch(HttpRequest request, HttpResponse response)
-		{
-			return Invoke(Match(request), request, response);
-		}
+		public bool InvokeOnMatch(HttpRequest request, HttpResponse response) =>
+			Invoke(Match(request), request, response);
 	}
 }

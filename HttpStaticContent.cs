@@ -47,8 +47,7 @@ namespace SimpleHttp
 			{
 				using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
-					long offset, length;
-					if (ParseRangeRequestHeader(request, file.Length, out offset, out length))
+					if (ParseRangeRequestHeader(request, file.Length, out long offset, out long length))
 						SetRangeResponseHeader(response, file.Length, offset, length);
 
 					response.Headers.Add("Accept-Ranges", "bytes");
@@ -63,7 +62,7 @@ namespace SimpleHttp
 			server.AddRoute("GET", $"{Regex.Escape(url.TrimEnd('/'))}(/.*)?", (captures, request, response) =>
 			{
 				var fullDirectoryPath = Path.GetFullPath(directoryPath);
-				if (!fullDirectoryPath.EndsWith($"{Path.DirectorySeparatorChar}"))
+				if (!fullDirectoryPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
 					fullDirectoryPath += Path.DirectorySeparatorChar;
 
 				var fullFilePath = Path.GetFullPath(
@@ -73,7 +72,7 @@ namespace SimpleHttp
 
 				if (Directory.Exists(fullFilePath))
 				{
-					if (!fullFilePath.EndsWith($"{Path.DirectorySeparatorChar}"))
+					if (!fullFilePath.EndsWith(Path.DirectorySeparatorChar.ToString()))
 						fullFilePath += Path.DirectorySeparatorChar;
 					if (defaultFile != null)
 						fullFilePath += defaultFile;
@@ -81,8 +80,7 @@ namespace SimpleHttp
 
 				using (var file = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
-					long offset, length;
-					if (ParseRangeRequestHeader(request, file.Length, out offset, out length))
+					if (ParseRangeRequestHeader(request, file.Length, out long offset, out long length))
 						SetRangeResponseHeader(response, file.Length, offset, length);
 
 					response.Headers.Add("Accept-Ranges", "bytes");
