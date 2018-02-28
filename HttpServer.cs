@@ -33,7 +33,7 @@ namespace SimpleHttp
 			Routes = new List<HttpRoute>();
 
 			SetDefaultRoute((request, response) =>
-				throw new FileNotFoundException($"No route matched for '{request.Url}'."));
+				throw new FileNotFoundException($"No route matched."));
 
 			SetErrorRoute((e, request, response) =>
 			{
@@ -82,7 +82,7 @@ namespace SimpleHttp
 
 				try
 				{
-					Log(request.RequestId, $"Request from '{request.ClientIP}'.");
+					Log(request.RequestId, $"Request for '{request.Url}' from '{request.ClientIP}'.");
 
 					if (!HttpRoute.InvokeMatchingRoutes(Routes, request, response))
 						DefaultRoute.Invoke(request, response);
