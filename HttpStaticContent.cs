@@ -47,10 +47,13 @@ namespace SimpleHttp
 			{
 				using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
+					response.ContentType = HttpMimeTypes.GetByPath(filePath);
+
 					if (ParseRangeRequestHeader(request, file.Length, out long offset, out long length))
 						SetRangeResponseHeader(response, file.Length, offset, length);
 
 					response.Headers.Add("Accept-Ranges", "bytes");
+
 					file.CopyBlockTo(response.GetBodyStream(), offset, length);
 				}
 			});
@@ -80,10 +83,13 @@ namespace SimpleHttp
 
 				using (var file = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
+					response.ContentType = HttpMimeTypes.GetByPath(fullFilePath);
+
 					if (ParseRangeRequestHeader(request, file.Length, out long offset, out long length))
 						SetRangeResponseHeader(response, file.Length, offset, length);
 
 					response.Headers.Add("Accept-Ranges", "bytes");
+
 					file.CopyBlockTo(response.GetBodyStream(), offset, length);
 				}
 			});
