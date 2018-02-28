@@ -15,7 +15,7 @@ namespace SimpleHttp
 			if (offset != null)
 				inStream.Seek((long)offset, SeekOrigin.Current);
 
-			byte[] buffer = new byte[81920];
+			byte[] buffer = new byte[4096];
 			long bytesCopied = 0;
 
 			while (true)
@@ -42,7 +42,7 @@ namespace SimpleHttp
 
 		public static string ReadAllText(this Stream stream)
 		{
-			using (var reader = new StreamReader(stream, Encoding.UTF8))
+			using (var reader = new StreamReader(stream, Encoding.UTF8, true, 4096, true))
 				return reader.ReadToEnd();
 		}
 
