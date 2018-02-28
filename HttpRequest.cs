@@ -54,8 +54,6 @@ namespace SimpleHttp
 		public byte[] ReadBodyData() => request.ReadBodyData();
 		public string ReadBodyText() => request.ReadBodyText();
 		public Stream GetBodyStream() => request.InputStream;
-
-		public T ReadBodyJson<T>() =>
-			JsonConvert.DeserializeObject<T>(ReadBodyText());
+		public T ReadBodyJson<T>() => JsonConvert.DeserializeObject<T>(ReadBodyText());
 	}
 }

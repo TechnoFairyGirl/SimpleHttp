@@ -119,14 +119,9 @@ namespace SimpleHttp
 			Log("Service stopped.");
 		}
 
-		public void SetLogCallback(Action<long?, string> callback) =>
-			logCallback = callback;
-
-		public void Log(long? requestId, string message) =>
-			logCallback(requestId, message);
-
-		public void Log(string message) =>
-			logCallback(null, message);
+		public void SetLogCallback(Action<long?, string> callback) => logCallback = callback;
+		public void Log(long? requestId, string message) => logCallback(requestId, message);
+		public void Log(string message) => logCallback(null, message);
 
 		public void AddRoute(
 			string method, string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
