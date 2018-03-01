@@ -82,7 +82,7 @@ namespace SimpleHttp
 
 				try
 				{
-					Log(request.RequestId, $"Request for '{request.Url}' from '{request.ClientIP}'.");
+					Log(request.RequestId, $"{request.Method} request for '{request.Url}' from '{request.ClientIP}'.");
 
 					if (!HttpRoute.InvokeMatchingRoutes(Routes, request, response))
 						DefaultRoute.Invoke(request, response);
