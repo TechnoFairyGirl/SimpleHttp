@@ -15,6 +15,9 @@ namespace SimpleHttp
 		public bool IsRegex { get; private set; }
 		public bool MatchFullUrl { get; private set; }
 
+		public bool IsStandard { get => callback != null; }
+		public bool IsError { get => errorCallback != null; }
+
 		public static bool InvokeMatchingRoutes(
 			List<HttpRoute> routes, HttpRequest request, HttpResponse response)
 		{

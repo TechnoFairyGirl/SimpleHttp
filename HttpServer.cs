@@ -90,10 +90,8 @@ namespace SimpleHttp
 				catch (HttpListenerException) { throw; }
 				catch (Exception e) { errorRoute.Invoke(e, request, response); }
 
-				if (!response.IsOpen)
-					return;
-
-				response.Close();
+				if (response.IsOpen)
+					response.Close();
 			}
 			catch (HttpListenerException) { }
 		}
@@ -134,46 +132,46 @@ namespace SimpleHttp
 		public void Log(long? requestId, string message) => logCallback(requestId, message);
 		public void Log(string message) => logCallback(null, message);
 
-		public void AddRoute(
-			string method, string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false)
+		public void AddRoute(HttpRoute route)
 		{
 			ThrowIfRunning();
-			routes.Add(new HttpRoute(method, url, callback, true, matchFullUrl));
+			routes.Add(route);
 		}
 
 		public void AddRoute(
-			string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false)
-		{
-			ThrowIfRunning();
-			routes.Add(new HttpRoute(null, url, callback, true, matchFullUrl));
-		}
+			string method, string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
+			AddRoute(new HttpRoute(method, url, callback, true, matchFullUrl));
 
 		public void AddRoute(
-			string method, string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false)
-		{
-			ThrowIfRunning();
-			routes.Add(new HttpRoute(method, url, callback, true, matchFullUrl));
-		}
+			string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
+			AddRoute(new HttpRoute(null, url, callback, true, matchFullUrl));
 
 		public void AddRoute(
-			string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false)
-		{
-			ThrowIfRunning();
-			routes.Add(new HttpRoute(null, url, callback, true, matchFullUrl));
-		}
+			string method, string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
+			AddRoute(new HttpRoute(method, url, callback, true, matchFullUrl));
+
+		public void AddRoute(
+			string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
+			AddRoute(new HttpRoute(null, url, callback, true, matchFullUrl));
 
 		public void AddExactRoute(
-			string method, string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false)
-		{
-			ThrowIfRunning();
-			routes.Add(new HttpRoute(method, url, callback, false, matchFullUrl));
-		}
+			string method, string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
+			AddRoute(new HttpRoute(method, url, callback, false, matchFullUrl));
 
 		public void AddExactRoute(
-			string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false)
+			string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
+			AddRoute(new HttpRoute(null, url, callback, false, matchFullUrl));
+
+		public void PrependRoute(HttpRoute route)
 		{
 			ThrowIfRunning();
-			routes.Add(new HttpRoute(null, url, callback, false, matchFullUrl));
+			routes.Insert(0, route);
+		}
+
+		public void ClearRoutes()
+		{
+			ThrowIfRunning();
+			routes.Clear();
 		}
 
 		public void SetDefaultRoute(Action<HttpRequest, HttpResponse> callback)
