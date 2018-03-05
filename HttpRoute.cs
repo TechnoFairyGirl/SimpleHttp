@@ -7,16 +7,16 @@ namespace SimpleHttp
 {
 	public class HttpRoute
 	{
-		readonly Action<string[], HttpRequest, HttpResponse> callback;
-		readonly Action<Exception, HttpRequest, HttpResponse> errorCallback;
+		Action<string[], HttpRequest, HttpResponse> Callback { get; }
+		Action<Exception, HttpRequest, HttpResponse> ErrorCallback { get; }
 
 		public string MethodPattern { get; }
 		public string UrlPattern { get; }
 		public bool IsRegex { get; }
 		public bool MatchFullUrl { get; }
 
-		public bool IsStandard { get => callback != null; }
-		public bool IsError { get => errorCallback != null; }
+		public bool IsStandard { get => Callback != null; }
+		public bool IsError { get => ErrorCallback != null; }
 
 		public static bool InvokeMatchingRoutes(
 			List<HttpRoute> routes, HttpRequest request, HttpResponse response)
@@ -38,8 +38,8 @@ namespace SimpleHttp
 			Action<string[], HttpRequest, HttpResponse> callback,
 			bool isRegex = true, bool matchFullUrl = false)
 		{
-			this.callback = callback;
-			this.errorCallback = null;
+			Callback = callback;
+			ErrorCallback = null;
 
 			MethodPattern = methodPattern;
 			UrlPattern = urlPattern;
@@ -56,8 +56,8 @@ namespace SimpleHttp
 
 		public HttpRoute(Action<Exception, HttpRequest, HttpResponse> errorCallback)
 		{
-			this.callback = null;
-			this.errorCallback = errorCallback;
+			Callback = null;
+			ErrorCallback = errorCallback;
 
 			MethodPattern = null;
 			UrlPattern = null;
@@ -107,10 +107,10 @@ namespace SimpleHttp
 
 		public bool Invoke(string[] captures, HttpRequest request, HttpResponse response)
 		{
-			if (callback == null || captures == null)
+			if (Callback == null || captures == null)
 				return false;
 
-			callback(captures, request, response);
+			Callback(captures, request, response);
 			return true;
 		}
 
@@ -119,10 +119,10 @@ namespace SimpleHttp
 
 		public bool Invoke(Exception e, HttpRequest request, HttpResponse response)
 		{
-			if (errorCallback == null || e == null)
+			if (ErrorCallback == null || e == null)
 				return false;
 
-			errorCallback(e, request, response);
+			ErrorCallback(e, request, response);
 			return true;
 		}
 
