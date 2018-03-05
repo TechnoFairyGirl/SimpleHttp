@@ -11,9 +11,9 @@ namespace SimpleHttp
 	public class HttpRequest
 	{
 		static long requestIdCtr = 0;
-		static object requestIdCtrLock = new object();
+		static readonly object requestIdCtrLock = new object();
 
-		HttpListenerRequest request;
+		readonly HttpListenerRequest request;
 
 		public string Method { get => request.HttpMethod; }
 		public string Url { get => request.Url.AbsolutePath; }
@@ -27,7 +27,7 @@ namespace SimpleHttp
 
 		public object CustomData { get; set; }
 
-		public long RequestId { get; private set; }
+		public long RequestId { get; }
 
 		public Dictionary<string, string> Cookies
 		{

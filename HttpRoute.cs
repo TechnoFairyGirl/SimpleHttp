@@ -7,13 +7,13 @@ namespace SimpleHttp
 {
 	public class HttpRoute
 	{
-		Action<string[], HttpRequest, HttpResponse> callback;
-		Action<Exception, HttpRequest, HttpResponse> errorCallback;
+		readonly Action<string[], HttpRequest, HttpResponse> callback;
+		readonly Action<Exception, HttpRequest, HttpResponse> errorCallback;
 
-		public string MethodPattern { get; private set; }
-		public string UrlPattern { get; private set; }
-		public bool IsRegex { get; private set; }
-		public bool MatchFullUrl { get; private set; }
+		public string MethodPattern { get; }
+		public string UrlPattern { get; }
+		public bool IsRegex { get; }
+		public bool MatchFullUrl { get; }
 
 		public bool IsStandard { get => callback != null; }
 		public bool IsError { get => errorCallback != null; }

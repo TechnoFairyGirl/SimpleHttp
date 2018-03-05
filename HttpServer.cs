@@ -9,12 +9,12 @@ namespace SimpleHttp
 {
 	public class HttpServer
 	{
-		HttpListener listener;
-		public int Port { get; private set; }
+		readonly HttpListener listener;
+		public int Port { get; }
 
 		Action<long?, string> logCallback;
 
-		List<HttpRoute> routes;
+		readonly List<HttpRoute> routes;
 		HttpRoute defaultRoute;
 		HttpRoute errorRoute;
 
@@ -117,7 +117,7 @@ namespace SimpleHttp
 			Log("Service stopped.");
 		}
 
-		void ThrowIfRunning()
+		protected void ThrowIfRunning()
 		{
 			if (IsRunning)
 				throw new InvalidOperationException("This operation is not allowed while the server is running.");
