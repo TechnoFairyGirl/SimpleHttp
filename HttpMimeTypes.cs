@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace SimpleHttp
 {
@@ -13,9 +12,7 @@ namespace SimpleHttp
 		{
 			mimeTypes = new Dictionary<string, string>();
 
-			using (var reader = new StreamReader(
-				new MemoryStream(Properties.Resources.MimeTypes, false),
-				Encoding.UTF8, true, 4096, false))
+			using (var reader = new StreamReader(new MemoryStream(Properties.Resources.MimeTypes, false)))
 			{
 				while (!reader.EndOfStream)
 				{

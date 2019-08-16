@@ -7,39 +7,33 @@ namespace SimpleHttp
 {
 	public class HttpRoute
 	{
-		Action<string[], HttpRequest, HttpResponse> Callback { get; }
-		Action<Exception, HttpRequest, HttpResponse> ErrorCallback { get; }
+		protected readonly Func<string[], HttpRequest, HttpResponse, bool> callback;
 
 		public string MethodPattern { get; }
 		public string UrlPattern { get; }
 		public bool IsRegex { get; }
 		public bool MatchFullUrl { get; }
 
-		public bool IsStandard { get => Callback != null; }
-		public bool IsError { get => ErrorCallback != null; }
-
-		public static bool InvokeMatchingRoutes(
-			List<HttpRoute> routes, HttpRequest request, HttpResponse response)
+		public static bool InvokeMatched(List<HttpRoute> routes, HttpRequest request, HttpResponse response)
 		{
-			var routeMatched = false;
-
 			foreach (var route in routes)
 			{
-				routeMatched |= route.InvokeOnMatch(request, response);
-				if (!response.IsOpen)
-					break;
+				var captures = route.Match(request);
+				if (captures == null)
+					continue;
+
+				if (!route.Invoke(captures, request, response))
+					return false;
 			}
 
-			return routeMatched;
+			return true;
 		}
 
 		public HttpRoute(
-			string methodPattern, string urlPattern, 
-			Action<string[], HttpRequest, HttpResponse> callback,
-			bool isRegex = true, bool matchFullUrl = false)
+			string methodPattern, string urlPattern, bool isRegex, bool matchFullUrl,
+			Func<string[], HttpRequest, HttpResponse, bool> callback)
 		{
-			Callback = callback;
-			ErrorCallback = null;
+			this.callback = callback;
 
 			MethodPattern = methodPattern;
 			UrlPattern = urlPattern;
@@ -48,22 +42,25 @@ namespace SimpleHttp
 		}
 
 		public HttpRoute(
-			string methodPattern, string urlPattern,
-			Action<HttpRequest, HttpResponse> callback,
-			bool isRegex = true, bool matchFullUrl = false)
-			: this(methodPattern, urlPattern, (cap, req, res) => callback(req, res), isRegex, matchFullUrl)
+			string methodPattern, string urlPattern, bool isRegex, bool matchFullUrl,
+			Func<HttpRequest, HttpResponse, bool> callback)
+			: this(methodPattern, urlPattern, isRegex, matchFullUrl, 
+				(cap, req, res) => callback(req, res))
 		{ }
 
-		public HttpRoute(Action<Exception, HttpRequest, HttpResponse> errorCallback)
-		{
-			Callback = null;
-			ErrorCallback = errorCallback;
+		public HttpRoute(
+			string methodPattern, string urlPattern, bool isRegex, bool matchFullUrl,
+			Action<string[], HttpRequest, HttpResponse> callback)
+			: this(methodPattern, urlPattern, isRegex, matchFullUrl, 
+				(cap, req, res) => { callback(cap, req, res); return false; })
+		{ }
 
-			MethodPattern = null;
-			UrlPattern = null;
-			IsRegex = false;
-			MatchFullUrl = false;
-		}
+		public HttpRoute(
+			string methodPattern, string urlPattern, bool isRegex, bool matchFullUrl,
+			Action<HttpRequest, HttpResponse> callback)
+			: this(methodPattern, urlPattern, isRegex, matchFullUrl,
+				(cap, req, res) => { callback(req, res); return false; })
+		{ }
 
 		public string[] Match(HttpRequest request)
 		{
@@ -93,7 +90,7 @@ namespace SimpleHttp
 					if (!match.Success)
 						return null;
 					result = match.Groups.Cast<Capture>().Skip(1)
-						.Select(c => HttpRequest.UrlDecode(c.Value)).ToArray();
+						.Select(cap => HttpRequest.UrlDecode(cap.Value)).ToArray();
 				}
 				else
 				{
@@ -105,28 +102,9 @@ namespace SimpleHttp
 			return result;
 		}
 
-		public bool Invoke(string[] captures, HttpRequest request, HttpResponse response)
-		{
-			if (Callback == null || captures == null)
-				return false;
-
-			Callback(captures, request, response);
-			return true;
-		}
-
+		public bool Invoke(string[] captures, HttpRequest request, HttpResponse response) =>
+			callback(captures, request, response);
 		public bool Invoke(HttpRequest request, HttpResponse response) =>
 			Invoke(new string[0], request, response);
-
-		public bool Invoke(Exception e, HttpRequest request, HttpResponse response)
-		{
-			if (ErrorCallback == null || e == null)
-				return false;
-
-			ErrorCallback(e, request, response);
-			return true;
-		}
-
-		public bool InvokeOnMatch(HttpRequest request, HttpResponse response) =>
-			Invoke(Match(request), request, response);
 	}
 }

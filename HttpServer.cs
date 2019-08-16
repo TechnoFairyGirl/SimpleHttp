@@ -7,18 +7,20 @@ using Newtonsoft.Json;
 
 namespace SimpleHttp
 {
-	public class HttpServer
+	public sealed class HttpServer
 	{
 		readonly HttpListener listener;
+
 		public int Port { get; }
+		public LogWriter LogWriter { get; set; }
+		public bool ResetResponseOnError { get; set; }
 
-		Action<long?, string> logCallback;
+		public List<HttpRoute> Routes { get; }
+		public List<HttpErrorRoute> ErrorRoutes { get; }
+		public HttpRoute DefaultRoute { get; set; }
+		public HttpErrorRoute DefaultErrorRoute { get; set; }
 
-		readonly List<HttpRoute> routes;
-		HttpRoute defaultRoute;
-		HttpRoute errorRoute;
-
-		public bool IsRunning { get => listener.IsListening; }
+		public bool IsRunning => listener.IsListening;
 
 		public HttpServer(int port)
 		{
@@ -26,23 +28,20 @@ namespace SimpleHttp
 			listener = new HttpListener();
 			listener.Prefixes.Add($"http://+:{Port}/");
 
-			SetLogCallback((requestId, message) =>
-				Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] " + 
-					(requestId != null ? $"<{requestId}> " : "") + message));
+			LogWriter = new LogWriter();
 
-			routes = new List<HttpRoute>();
+			ResetResponseOnError = true;
+
+			Routes = new List<HttpRoute>();
+			ErrorRoutes = new List<HttpErrorRoute>();
 
 			SetDefaultRoute((request, response) =>
 				throw new FileNotFoundException($"No route matched."));
 
-			SetErrorRoute((e, request, response) =>
+			SetDefaultErrorRoute((e, request, response) =>
 			{
-				Log(request.RequestId, $"{e.GetType()} : {e.Message}");
-
 				if (response.IsDataSent)
 					return;
-
-				response.Reset();
 
 				if (e is FileNotFoundException || e is DirectoryNotFoundException || e is PathTooLongException)
 				{
@@ -84,11 +83,25 @@ namespace SimpleHttp
 				{
 					Log(request.RequestId, $"{request.Method} request for '{request.Url}' from '{request.ClientIP}'.");
 
-					if (!HttpRoute.InvokeMatchingRoutes(routes, request, response))
-						defaultRoute.Invoke(request, response);
+					if (HttpRoute.InvokeMatched(Routes, request, response))
+						DefaultRoute.Invoke(request, response);
 				}
 				catch (HttpListenerException) { throw; }
-				catch (Exception e) { errorRoute.Invoke(e, request, response); }
+				catch (Exception e)
+				{
+					Log(request.RequestId, $"{e.GetType()} : {e.Message}");
+
+					if (ResetResponseOnError)
+					{
+						if (response.IsDataSent)
+							response.Close();
+						else
+							response.Reset();
+					}
+
+					if (HttpErrorRoute.InvokeAll(ErrorRoutes, e, request, response))
+						DefaultErrorRoute.Invoke(e, request, response);
+				}
 
 				if (response.IsOpen)
 					response.Close();
@@ -99,7 +112,7 @@ namespace SimpleHttp
 		public void Start()
 		{
 			if (IsRunning)
-				throw new InvalidOperationException("Server is already running.");
+				return;
 
 			listener.Start();
 			listener.BeginGetContext(ClientHandler, null);
@@ -110,80 +123,39 @@ namespace SimpleHttp
 		public void Stop()
 		{
 			if (!IsRunning)
-				throw new InvalidOperationException("Server is not running.");
+				return;
 
 			listener.Stop();
 
 			Log("Service stopped.");
 		}
 
-		protected void ThrowIfRunning()
-		{
-			if (IsRunning)
-				throw new InvalidOperationException("This operation is not allowed while the server is running.");
-		}
+		public void Log(long? requestId, string message) =>
+			LogWriter.Log((requestId == null ? "" : $"<{requestId}> ") + message);
+		public void Log(string message) => LogWriter.Log(message);
 
-		public void SetLogCallback(Action<long?, string> callback)
-		{
-			ThrowIfRunning();
-			logCallback = callback;
-		}
+		public void AddRoute(HttpRoute route) => Routes.Add(route);
+		public void AddRoute(string method, string url, Func<string[], HttpRequest, HttpResponse, bool> callback) =>
+			AddRoute(new HttpRoute(method, url, true, false, callback));
+		public void AddRoute(string method, string url, Action<string[], HttpRequest, HttpResponse> callback) =>
+			AddRoute(new HttpRoute(method, url, true, false, callback));
+		public void AddExactRoute(string method, string url, Func<HttpRequest, HttpResponse, bool> callback) =>
+			AddRoute(new HttpRoute(method, url, false, false, callback));
+		public void AddExactRoute(string method, string url, Action<HttpRequest, HttpResponse> callback) =>
+			AddRoute(new HttpRoute(method, url, false, false, callback));
+		public void PrependRoute(HttpRoute route) => Routes.Insert(0, route);
+		public void ClearRoutes() => Routes.Clear();
+		public void SetDefaultRoute(HttpRoute route) => DefaultRoute = route;
+		public void SetDefaultRoute(Action<HttpRequest, HttpResponse> callback) =>
+			SetDefaultRoute(new HttpRoute(null, null, false, false, callback));
 
-		public void Log(long? requestId, string message) => logCallback(requestId, message);
-		public void Log(string message) => logCallback(null, message);
-
-		public void AddRoute(HttpRoute route)
-		{
-			ThrowIfRunning();
-			routes.Add(route);
-		}
-
-		public void AddRoute(
-			string method, string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
-			AddRoute(new HttpRoute(method, url, callback, true, matchFullUrl));
-
-		public void AddRoute(
-			string url, Action<string[], HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
-			AddRoute(new HttpRoute(null, url, callback, true, matchFullUrl));
-
-		public void AddRoute(
-			string method, string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
-			AddRoute(new HttpRoute(method, url, callback, true, matchFullUrl));
-
-		public void AddRoute(
-			string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
-			AddRoute(new HttpRoute(null, url, callback, true, matchFullUrl));
-
-		public void AddExactRoute(
-			string method, string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
-			AddRoute(new HttpRoute(method, url, callback, false, matchFullUrl));
-
-		public void AddExactRoute(
-			string url, Action<HttpRequest, HttpResponse> callback, bool matchFullUrl = false) =>
-			AddRoute(new HttpRoute(null, url, callback, false, matchFullUrl));
-
-		public void PrependRoute(HttpRoute route)
-		{
-			ThrowIfRunning();
-			routes.Insert(0, route);
-		}
-
-		public void ClearRoutes()
-		{
-			ThrowIfRunning();
-			routes.Clear();
-		}
-
-		public void SetDefaultRoute(Action<HttpRequest, HttpResponse> callback)
-		{
-			ThrowIfRunning();
-			defaultRoute = new HttpRoute(null, null, callback);
-		}
-
-		public void SetErrorRoute(Action<Exception, HttpRequest, HttpResponse> errorCallback)
-		{
-			ThrowIfRunning();
-			errorRoute = new HttpRoute(errorCallback);
-		}
+		public void AddErrorRoute(HttpErrorRoute errorRoute) => ErrorRoutes.Add(errorRoute);
+		public void AddErrorRoute(Func<Exception, HttpRequest, HttpResponse, bool> errorCallback) =>
+			AddErrorRoute(new HttpErrorRoute(errorCallback));
+		public void PrependErrorRoute(HttpErrorRoute errorRoute) => ErrorRoutes.Insert(0, errorRoute);
+		public void ClearErrorRoutes() => ErrorRoutes.Clear();
+		public void SetDefaultErrorRoute(HttpErrorRoute errorRoute) => DefaultErrorRoute = errorRoute;
+		public void SetDefaultErrorRoute(Action<Exception, HttpRequest, HttpResponse> errorCallback) =>
+			SetDefaultErrorRoute(new HttpErrorRoute(errorCallback));
 	}
 }

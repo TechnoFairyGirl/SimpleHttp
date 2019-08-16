@@ -62,7 +62,7 @@ namespace SimpleHttp
 		public static void AddStaticDirectory(
 			this HttpServer server, string url, string directoryPath, string defaultFile = null)
 		{
-			server.AddRoute("GET", $"{Regex.Escape(url.TrimEnd('/'))}(/.*)?", (captures, request, response) =>
+			server.AddRoute("GET", Regex.Escape(url.TrimEnd('/')) + "(/.*)?", (captures, request, response) =>
 			{
 				var fullDirectoryPath = Path.GetFullPath(directoryPath);
 				if (!fullDirectoryPath.EndsWith(Path.DirectorySeparatorChar.ToString()))

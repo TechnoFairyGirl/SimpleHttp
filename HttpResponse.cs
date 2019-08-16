@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
 using Newtonsoft.Json;
 
 namespace SimpleHttp
 {
-	public class HttpResponse
+	public sealed class HttpResponse
 	{
 		HttpListenerResponse response;
 
@@ -23,14 +22,16 @@ namespace SimpleHttp
 		public Dictionary<string, long> CookieExpire { get; set; }
 		public string ContentType { get; set; }
 		public string RedirectLocation { get; set; }
+		public bool AllowCors { get; set; }
 
 		public static string UrlEncode(string str) => WebUtility.UrlEncode(str);
 		public static string Base64Encode(byte[] data) => Convert.ToBase64String(data);
-		public static string Base64Encode(string str) => Base64Encode(Encoding.UTF8.GetBytes(str));
+		public static string Base64Encode(string str) => Base64Encode(HttpHelperExtensions.UTF8.GetBytes(str));
 
 		public HttpResponse(HttpListenerResponse response)
 		{
 			this.response = response;
+			this.response.KeepAlive = false;
 
 			IsOpen = true;
 			IsDataSent = false;
@@ -97,6 +98,12 @@ namespace SimpleHttp
 				response.RedirectLocation = RedirectLocation;
 			}
 
+			if (AllowCors)
+			{
+				response.AppendHeader("Access-Control-Expose-Headers", String.Join(", ", response.Headers.AllKeys));
+				response.AppendHeader("Access-Control-Allow-Origin", "*");
+			}
+
 			IsDataSent = true;
 		}
 
@@ -106,8 +113,8 @@ namespace SimpleHttp
 				ContentType = "application/octet-stream";
 
 			SetHeaders();
-
 			response.WriteBodyData(data);
+			response.FlushBodyStream();
 		}
 
 		public void WriteBodyText(string text)
@@ -116,8 +123,8 @@ namespace SimpleHttp
 				ContentType = "text/plain";
 
 			SetHeaders();
-
 			response.WriteBodyText(text);
+			response.FlushBodyStream();
 		}
 
 		public void WriteBodyJson<T>(T obj)
@@ -126,8 +133,8 @@ namespace SimpleHttp
 				ContentType = "application/json";
 
 			SetHeaders();
-
 			response.WriteBodyText(JsonConvert.SerializeObject(obj));
+			response.FlushBodyStream();
 		}
 
 		public Stream GetBodyStream()
