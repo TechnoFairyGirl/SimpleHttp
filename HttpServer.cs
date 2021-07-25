@@ -14,6 +14,7 @@ namespace SimpleHttp
 		public int Port { get; }
 		public LogWriter LogWriter { get; set; }
 		public bool ResetResponseOnError { get; set; }
+		public bool LogAllRequests { get; set; }
 
 		public List<HttpRoute> Routes { get; }
 		public List<HttpErrorRoute> ErrorRoutes { get; }
@@ -31,6 +32,7 @@ namespace SimpleHttp
 			LogWriter = new LogWriter();
 
 			ResetResponseOnError = true;
+			LogAllRequests = false;
 
 			Routes = new List<HttpRoute>();
 			ErrorRoutes = new List<HttpErrorRoute>();
@@ -81,7 +83,8 @@ namespace SimpleHttp
 
 				try
 				{
-					Log(request.RequestId, $"{request.Method} request for '{request.Url}' from '{request.ClientIP}'.");
+					if (LogAllRequests)
+						Log(request.RequestId, $"{request.Method} request for '{request.Url}' from '{request.ClientIP}'.");
 
 					if (HttpRoute.InvokeMatched(Routes, request, response))
 						DefaultRoute.Invoke(request, response);
