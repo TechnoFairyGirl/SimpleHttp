@@ -54,6 +54,15 @@ namespace SimpleHttp
 			}
 		}
 
+		public static byte[] ReadBytes(this Stream stream, long length)
+		{
+			using (var buffer = new MemoryStream())
+			{
+				stream.CopyBlockTo(buffer, length);
+				return buffer.ToArray();
+			}
+		}
+
 		public static string ReadAllText(this Stream stream)
 		{
 			using (var reader = new StreamReader(stream, UTF8, false, 4096, true))
@@ -145,12 +154,16 @@ namespace SimpleHttp
 
 		public static byte[] ReadBodyData(this HttpListenerRequest request) =>
 			request.InputStream.ReadAllBytes();
+
 		public static string ReadBodyText(this HttpListenerRequest request) =>
 			request.InputStream.ReadAllText();
+
 		public static void WriteBodyData(this HttpListenerResponse response, byte[] data) =>
 			response.OutputStream.Write(data);
+
 		public static void WriteBodyText(this HttpListenerResponse response, string text) =>
 			response.OutputStream.Write(text);
+
 		public static void FlushBodyStream(this HttpListenerResponse response) =>
 			response.OutputStream.Flush();
 

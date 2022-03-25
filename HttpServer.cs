@@ -45,21 +45,28 @@ namespace SimpleHttp
 				if (response.IsDataSent)
 					return;
 
-				if (e is FileNotFoundException || e is DirectoryNotFoundException || e is PathTooLongException)
+				if (e is FileNotFoundException || 
+					e is DirectoryNotFoundException || 
+					e is PathTooLongException)
 				{
 					response.StatusCode = 404;
 					response.WriteBodyText("Not found.");
 					return;
 				}
 
-				if (e is SecurityException || e is UnauthorizedAccessException)
+				if (e is SecurityException || 
+					e is UnauthorizedAccessException)
 				{
 					response.StatusCode = 403;
 					response.WriteBodyText("Forbidden.");
 					return;
 				}
 
-				if (e is JsonReaderException || e is KeyNotFoundException)
+				if (e is JsonReaderException || 
+					e is KeyNotFoundException ||
+					e is ArgumentException ||
+					e is ArgumentNullException ||
+					e is ArgumentOutOfRangeException)
 				{
 					response.StatusCode = 400;
 					response.WriteBodyText("Invalid request.");

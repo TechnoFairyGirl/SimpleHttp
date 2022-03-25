@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Web;
 using Newtonsoft.Json;
 
 namespace SimpleHttp
@@ -52,5 +53,7 @@ namespace SimpleHttp
 		public string ReadBodyText() => request.ReadBodyText();
 		public Stream GetBodyStream() => request.InputStream;
 		public T ReadBodyJson<T>() => JsonConvert.DeserializeObject<T>(ReadBodyText());
+		public Dictionary<string, string> ReadBodyUrlEncoded() =>
+			HttpUtility.ParseQueryString(ReadBodyText()).ToDictionary();
 	}
 }
