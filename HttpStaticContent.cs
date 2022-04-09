@@ -7,6 +7,9 @@ namespace SimpleHttp
 {
 	public static class HttpStaticContent
 	{
+		static string AppendDirectorySeparator(string path) =>
+			path.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+
 		static bool ParseRangeRequestHeader(HttpRequest request, long totalLength, out long offset, out long length)
 		{
 			offset = 0;
@@ -64,22 +67,24 @@ namespace SimpleHttp
 		{
 			server.AddRoute("GET", Regex.Escape(url.TrimEnd('/')) + "(/.*)?", (captures, request, response) =>
 			{
-				var fullDirectoryPath = Path.GetFullPath(directoryPath);
-				if (!fullDirectoryPath.EndsWith(Path.DirectorySeparatorChar.ToString()))
-					fullDirectoryPath += Path.DirectorySeparatorChar;
+				var fullDirectoryPath = AppendDirectorySeparator(Path.GetFullPath(directoryPath));
 
 				var fullFilePath = Path.GetFullPath(
 					fullDirectoryPath + captures[0].Replace('/', Path.DirectorySeparatorChar));
+
 				if (!fullFilePath.StartsWith(fullDirectoryPath))
-					throw new SecurityException($"Access to '{fullFilePath}' not allowed.");
+					return true;
 
 				if (Directory.Exists(fullFilePath))
 				{
-					if (!fullFilePath.EndsWith(Path.DirectorySeparatorChar.ToString()))
-						fullFilePath += Path.DirectorySeparatorChar;
-					if (defaultFile != null)
-						fullFilePath += defaultFile;
+					if (defaultFile == null)
+						return true;
+
+					fullFilePath = AppendDirectorySeparator(fullFilePath) + defaultFile;
 				}
+
+				if (!File.Exists(fullFilePath))
+					return true;
 
 				using (var file = new FileStream(fullFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
@@ -92,6 +97,8 @@ namespace SimpleHttp
 
 					file.CopyBlockTo(response.GetBodyStream(), offset, length);
 				}
+
+				return false;
 			});
 		}
 	}
