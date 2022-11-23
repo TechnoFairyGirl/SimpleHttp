@@ -38,7 +38,8 @@ namespace SimpleHttp
 			ErrorRoutes = new List<HttpErrorRoute>();
 
 			SetDefaultRoute((request, response) =>
-				throw new FileNotFoundException($"No route matched."));
+				throw new FileNotFoundException(
+					$"No route matched. ({request.Method} {request.Url})"));
 
 			SetDefaultErrorRoute((e, request, response) =>
 			{
