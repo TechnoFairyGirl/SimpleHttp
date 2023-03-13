@@ -44,18 +44,18 @@ namespace SimpleHttp
 			response.Headers.Add("Content-Range", $"bytes {offset}-{offset + length - 1}/{totalLength}");
 		}
 
-		public static void AddStaticFile(this HttpServer server, string url, string filePath)
+		public static void AddStaticFile(this HttpServer server, string url, string filePath, string mimeType = null)
 		{
 			server.AddExactRoute("GET", url, (request, response) =>
 			{
 				using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
-					response.ContentType = HttpMimeTypes.GetByPath(filePath);
+					response.ContentType = mimeType ?? HttpMimeTypes.GetByPath(filePath);
 
 					if (ParseRangeRequestHeader(request, file.Length, out long offset, out long length))
 						SetRangeResponseHeader(response, file.Length, offset, length);
 
-					response.Headers.Add("Accept-Ranges", "bytes");
+					//response.Headers.Add("Accept-Ranges", "bytes");
 
 					file.CopyBlockTo(response.GetBodyStream(), offset, length);
 				}
@@ -93,7 +93,7 @@ namespace SimpleHttp
 					if (ParseRangeRequestHeader(request, file.Length, out long offset, out long length))
 						SetRangeResponseHeader(response, file.Length, offset, length);
 
-					response.Headers.Add("Accept-Ranges", "bytes");
+					//response.Headers.Add("Accept-Ranges", "bytes");
 
 					file.CopyBlockTo(response.GetBodyStream(), offset, length);
 				}
